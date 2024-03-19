@@ -47,22 +47,13 @@
                         <div class="card-header">{{ isset($store) ? 'Edit Store' : 'Create Store' }}</div>
 
                         <div class="card-body">
-
-                            {{-- <form id="storeForm" action="{{ isset($store) ? route('stores.update', $store->id) : route('stores.store') }}" method="POST"> --}}
                             <form id="storeForm" action="{{ route('stores.store') }}" method="POST">
 
                                 @csrf
-                                {{-- @if (isset($store))
-                                @method('PUT')
-                            @endif --}}
-
-                                {{-- <div class="form-group">
-                                <label for="name">Name</label>
-                                <input type="text" name="name" id="name" class="form-control" value="{{ old('name', isset($store) ? $store->name : '') }}">
-                            </div> --}}
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
+                                            <input type="hidden" name="id" id="id">
                                             <label for="name">Name</label>
                                             <input type="text" name="name" id="name" class="form-control"
                                                 value="{{ old('name') }}">
@@ -86,25 +77,41 @@
                                 <div class="row mt-5">
                                     <div class="col-md-4">
                                         <label for="contact_person">Country</label>
-                                        <select class="form-select" aria-label="Default select example">
-
+                                        <select class="form-select" id="country_id" onchange="getCity(this.value)"
+                                            name="country_id" aria-label="Default select example">
+                                            <option selected>Open this select menu</option>
+                                            @foreach ($country as $item)
+                                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
 
                                     <div class="col-md-4  mt-4">
                                         <label for="contact_person">City</label>
-                                        <select class="js-example-basic-single" name="city">
-                                            <option value="AL">Alabama</option>
-                                            ...
-                                            <option value="WY">Wyoming</option>
+                                        <select class="js-example-basic-single" id="city_id"
+                                            onchange="getLandMark(this.value)" name="city_id">
+                                            <option value="">Select City</option>
+                                            @foreach ($city as $item)
+                                                <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
 
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="contact_person">Land Mark</label>
-                                            <input type="text" name="land_mark" id="land_mark" class="form-control"
-                                                value="{{ old('land_mark') }}">
+                                            <select name="landmark_id" id="landmark_id">
+                                                <option value="">Select Land Mark</option>
+                                                @foreach ($landMark as $item)
+                                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-primary"
+                                                onclick="addLandMark()">+</button>
+                                            <input type="text" name="landmark_name" id="landmark_name"
+                                                class="form-control d-none">
+                                            <button type="button" class="btn btn-danger d-none" id="landmarkBtn"
+                                                onclick="removeLandMark()">Add</button>
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +135,7 @@
             <table id="watch_store_list" class="display table mt-5">
                 <thead>
                     <tr>
+                        <th>{{ __('Store #') }}</th>
                         <th>{{ __('Store Name') }}</th>
                         <th>{{ __('Store Address') }}</th>
                         <th>{{ __('Contact Person') }}</th>
@@ -149,7 +157,124 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script>
+        function addLandMark() {
+            $('#landmark_name').removeClass('d-none');
+            // $('#submitBtn').addClass('d-none');
+            $('#landmarkBtn').removeClass('d-none');
+            $('#landmarkBtn').addClass('d-block');
+
+            var landmark_name = $('#landmark_name').val();
+            var city_id = $('#city_id').val();
+            $.ajax({
+                type: "POST",
+                url: "{{ route('stores.area') }}",
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    city_id: city_id,
+                    name: landmark_name
+                },
+                success: function(response) {
+
+                    console.log(response);
+                    getCity(id);
+
+                        // $('#landmark_id').append('<option value="' + response.id + '">' + response.name +
+                        //     '</option>');
+                        // $('#landmark_id').val(response.id);
+
+                },
+                error: function(xhr, status, error) {
+
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+
+
+        function removeLandMark() {
+            $('#landmark_name').addClass('d-none');
+            $('#submitBtn').removeClass('d-none');
+            $('#landmarkBtn').addClass('d-none');
+            $('#landmarkBtn').removeClass('d-block');
+            addLandMark();
+        }
+
+        function getLandMark(id) {
+            console.log(id);
+            $.ajax({
+                url: '{{ route('landmarks.getData') }}',
+                type: 'GET',
+                data: {
+                    city_id: id
+                },
+                success: function(data) {
+                    console.log(data);
+                    $('#landmark_id').empty(); // Clear previous options
+                    $.each(data, function(index, landmark) {
+                        $('#landmark_id').append($('<option>', {
+                            value: landmark.id,
+                            text: landmark.name
+                        }));
+                    });
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        function getCity(id) {
+            console.log(id);
+            $.ajax({
+                url: '{{ route('cities.getData') }}',
+                type: 'GET',
+                data: {
+                    country_id: id
+                },
+                success: function(data) {
+                    console.log(data);
+                    $('#city_id').empty();
+                    // getLandMark(id);
+                    $.each(data, function(index, city) {
+                        $('#city_id').append($('<option>', {
+                            value: city.id,
+                            text: city.name
+                        }));
+                    });
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        }
+
+        function editStore(id) {
+            $.ajax({
+                url: '{{ route('stores.create_edit') }}',
+                type: 'GET',
+                data: {
+                    id: id
+                },
+                success: function(data) {
+                    console.log(data);
+                    $('#id').val(data.id);
+                    $('#name').val(data.name);
+                    $('#address').val(data.address);
+                    $('#contact_person').val(data.contact_person);
+                    $('#country_id').val(data.country_id);
+                    $('#city_id').val(data.city_id);
+                    $('#landmark_id').val(data.landmark_id);
+                    getData();
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    alert('An error occurred while retrieving the store data.');
+                }
+            });
+        }
         $(document).ready(function() {
+            getData();
             $('#storeForm').on('submit', function(event) {
                 event.preventDefault();
 
@@ -162,6 +287,9 @@
                     success: function(response) {
                         console.log(response);
 
+                        $('#storeForm')[0].reset();
+                        $('#id').val('');
+                        getData();
                         alert('Store ' + (response.status === 'created' ? 'created' :
                             'updated') + ' successfully!');
                     },
@@ -173,30 +301,78 @@
                 });
             });
 
-            $.ajax({
-                url: '{{ route('stores.getData') }}',
-                type: 'GET',
-                success: function(data) {
-                    $('#watch_store_list').DataTable({
-                        data: data,
-                        columns: [{
-                                data: 'id'
-                            },
-                            {
-                                data: 'name'
-                            },
-                            {
-                                data: 'remaining_user_point'
-                            }
-                        ]
+            function getData() {
+                $.ajax({
+                    url: '{{ route('stores.getData') }}',
+                    type: 'GET',
+                    success: function(data) {
+                        $('#watch_store_list').DataTable().destroy();
+                        $('#watch_store_list').DataTable({
+                            data: data,
+                            columns: [{
+                                    data: 'id'
+                                },
+                                {
+                                    data: 'name'
+                                },
+                                {
+                                    data: 'address'
+                                },
+                                {
+                                    data: 'contact_person'
+                                },
+                                {
+                                    data: 'country_name'
+                                },
+                                {
+                                    data: 'city_name'
+                                },
+                                {
+                                    data: 'landmark_name'
+                                },
+                                {
+                                    // Edit and Delete button column
+                                    data: null,
+                                    render: function(data, type, row) {
+                                        return '<button onclick="editStore(' + row.id +
+                                            ')" class="btn btn-primary btn-sm edit-btn" data-id="' +
+                                            row.id + '">Edit</button>' +
+                                            '<button class="btn btn-danger btn-sm delete-btn" data-id="' +
+                                            row.id + '">Delete</button>';
+                                    }
+                                }
+
+                            ]
+                        });
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            function deleteStore() {
+                $(document).on('click', '.delete-btn', function() {
+                    var storeId = $(this).data('id');
+
+                    $.ajax({
+                        type: 'DELETE',
+                        url: '{{ route('stores.delete') }}',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: storeId
+                        },
+                        success: function(response) {
+                            getData();
+                            alert('Store deleted successfully!');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
                     });
-                },
-                error: function(error) {
-                    console.log(error);
-                }
-            });
-
-
+                });
+            }
+            deleteStore();
             $('.js-example-basic-single').select2();
         });
     </script>

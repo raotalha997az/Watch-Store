@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('city_id');
             $table->string('name');
-            $table->string('coordinates');
+            $table->dropColumn('coordinates');
             $table->timestamps();
             $table->foreign('city_id')->references('id')->on('cities')->onDelete('cascade');
         });
@@ -27,6 +27,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('area_landmarks');
+        Schema::dropIfExists('area_landmarks', function (Blueprint $table) {
+            $table->string('coordinates');
+        });
     }
 };

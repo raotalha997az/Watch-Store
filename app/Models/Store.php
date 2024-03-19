@@ -13,5 +13,10 @@ class Store extends Model
         'name',
         'address',
         'contact_person',
+        'country_id',
+        'city_id',
+        'landmark_id',
+        'created_at',
+        'updated_at',
     ];
 }
