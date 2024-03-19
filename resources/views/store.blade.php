@@ -103,7 +103,8 @@
                                             <select name="landmark_id" id="landmark_id">
                                                 <option value="">Select Land Mark</option>
                                                 @foreach ($landMark as $item)
-                                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}" id="optionid">
+                                                        {{ $item->name }}</option>
                                                 @endforeach
                                             </select>
                                             <button type="button" class="btn btn-primary"
@@ -176,11 +177,21 @@
                 success: function(response) {
 
                     console.log(response);
-                    getCity(id);
+                    var id = response.success[0].id;
+                    var name = response.success[0].name;
 
-                        // $('#landmark_id').append('<option value="' + response.id + '">' + response.name +
-                        //     '</option>');
-                        // $('#landmark_id').val(response.id);
+                    // Log the id and name to the console
+                    console.log("ID:", id);
+                    console.log("Name:", name);
+
+
+                    $('#landmark_id').empty(); // Clear previous options
+                    $.each(response.success, function(index, landmark) {
+                        $('#landmark_id').append($('<option>', {
+                            value: landmark.id,
+                            text: landmark.name
+                        }));
+                    });
 
                 },
                 error: function(xhr, status, error) {
