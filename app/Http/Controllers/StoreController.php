@@ -63,10 +63,25 @@ class StoreController extends Controller
         ]);
 
         if($request->id){
-            $store = Store::find($request->id);
-            $store->update($request->all());
+            DB::select('CALL updateStore(?, ?, ?, ?, ?, ?, ?)', [
+                $request->id,
+                $request->name,
+                $request->address,
+                $request->contact_person,
+                $request->city_id,
+                $request->country_id,
+                $request->landmark_id
+            ]);
+
         }else{
-            $store = Store::create($request->all());
+            $store = DB::select('CALL CreateStore( ?, ?, ?, ?, ?, ?)', [
+                $request->name,
+                $request->address,
+                $request->contact_person,
+                $request->city_id,
+                $request->country_id,
+                $request->landmark_id
+            ]);;
         }
 
 

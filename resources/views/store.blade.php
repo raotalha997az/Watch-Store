@@ -265,7 +265,8 @@
                     $('#country_id').val(data.country_id);
                     $('#city_id').val(data.city_id);
                     $('#landmark_id').val(data.landmark_id);
-                    getData();
+                    getCity();
+                    // getData();
                 },
                 error: function(xhr, status, error) {
                     console.error(xhr.responseText);
